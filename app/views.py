@@ -1,8 +1,9 @@
 from decimal import Decimal
 
 LABELS = {'trace':'轨迹文件采信','calibration':'距离方向校准','pairs':'双端最优配对','loss':'接续损耗判定',
-          'design':'设计实测对账','archive':'批次留档复跑','certificate':'光纤证据签发'}
+          'design':'设计实测对账','sampling':'交工班组抽验','archive':'批次留档复跑','certificate':'光纤证据签发'}
 CODES = {'PASS':'通过','OVER_LIMIT':'超限','INVALID_NET_GAIN':'净增益无效','SINGLE_SIDE_ONLY':'仅单端有测','NO_COUPLED_EVIDENCE':'双端缺证','DESIGN_OUTSIDE_LINK':'设计点越界'}
+STATES = {'PICKED':'初抽','ESCALATED':'扩查','NOT_SAMPLED':'未抽验'}
 
 
 def metres(mm):

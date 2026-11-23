@@ -26,6 +26,7 @@ th { background:var(--surface-2); position:sticky; top:0; z-index:1; }
 [data-event]:focus { outline:2px solid var(--accent); outline-offset:-2px; background:#3b2b52; }
 [data-state=PASS] { color:var(--ok); } [data-state=OVER_LIMIT],.issue { color:var(--bad); }
 [data-state=SINGLE_SIDE_ONLY], [data-state=NO_COUPLED_EVIDENCE], [data-state=INVALID_NET_GAIN], [data-state=DESIGN_OUTSIDE_LINK] { color:var(--warn); }
+[data-state=PICKED] { color:var(--accent); } [data-state=ESCALATED] { color:var(--warn); } [data-state=NOT_SAMPLED] { color:var(--muted); }
 #focus-event { display:block; font-size:11px; min-height:15px; color:var(--accent); padding:0 var(--pad); }
 .archive p,.download { margin:8px var(--pad); }
 .hash { overflow-wrap:anywhere; color:var(--muted); }

@@ -14,6 +14,7 @@
 | M5 设计与实测对账 | 核对逐接头是否缺证 | POST /api/design | `app/modules/design/service.py` | `tests/test_design.py` |
 | M6 批次留档复跑 | 留档和重跑同一轨迹组 | POST /api/inspections | `app/modules/archive/storage.py` | `tests/test_archive.py` |
 | M7 光纤证据签发 | 复核签发条件并下载 | GET /api/certificate/<id> | `app/modules/certificate/service.py` | `tests/test_certificate.py` |
+| M8 交工班组抽验 | 给定名额定复测名单 | POST /api/sampling | `app/modules/sampling/plan.py` | `tests/test_sampling.py` |
 
 ## 陷阱登记
 
@@ -34,5 +35,12 @@
 - 6 个设计接头 = 3 通过 + 1 超限 + 2 缺证。
 - 12 条窗内端点 = 2×(4 已挂接 + 1 孤配) + 2 单端。窗外测量另计 1 条。
 - F-01 双向均值 (−0.100+0.300)/2=0.1000 dB，F-03 为 (0.33+0.31)/2=0.3200 dB，超出 0.200 dB。
+
+## 抽验规则
+
+- 验收员给定初抽名额和班组划分，未列名的接头归入未分班。
+- 名额够时每班保底 1 个，余额按各班单端告警数以 D'Hondt 最大商数法追加；名额不足班数时告警重的班优先。班内单端告警多的接头先抽，平手按接头号。全程确定性，同批重试复用首次名单，不重复占用名额。
+- 抽中的接头双端对账超限，该班组所有接头纳入复测范围。
+- 最终抽验范围全部对账合格才可签发，未抽中的接头仍记未抽验；存在抽验批次的核验在范围合格前以 `SAMPLING_PENDING` 阻滞签发。
 
 输入为设备导出的事件表。二进制曲线解码、坡度自校与电子签章未纳入该工作台。

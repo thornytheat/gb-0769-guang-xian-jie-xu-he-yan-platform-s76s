@@ -1,0 +1,41 @@
+{% set design = data.design %}
+<section class="panel stats">
+  <dl class="kpis">
+    <div><dt>设计点</dt><dd>{{ design.design_count }}</dd></div><div><dt>单端告警</dt><dd>{{ design.single_count }}</dd></div>
+    {% if evidence %}<div><dt>初抽名额</dt><dd>{{ evidence.allocated }}/{{ evidence.quota }}</dd></div><div><dt>复测范围</dt><dd>{{ evidence.scope_count }}</dd></div><div><dt>未抽验</dt><dd>{{ evidence.not_sampled|length }}</dd></div>
+    {% else %}<div><dt>超限</dt><dd>{{ design.over_limit }}</dd></div><div><dt>缺证</dt><dd>{{ design.missing }}</dd></div><div><dt>通过</dt><dd>{{ design.passed }}</dd></div>{% endif %}
+  </dl>
+</section>
+{% if issued %}<p role="status">{{ '已登记批次' if fresh else '复用同批名单，名额不重复占用' }} {{ issued.batch_id[:12] }}</p>{% endif %}
+<section class="panel">
+  <h3>$ 抽验参数</h3>
+  <form class="command" method="post" action="/inspect/sampling">
+    <input type="hidden" name="sample" value="{{ mode if mode != 'custom' else 'dirty' }}">
+    <label>初抽名额 <input name="quota" type="number" min="1" step="1" value="{{ evidence.quota if evidence else '' }}" required></label>
+    <label>班组划分（每行：接头,班组；未列名的接头归入未分班）<textarea name="crews" rows="6" spellcheck="false">{% for row in design.rows %}{{ row.joint }},{{ evidence.crews.get(row.joint, '') if evidence else '' }}
+{% endfor %}</textarea></label>
+    <button id="sampling-run">定名单</button>
+  </form>
+</section>
+{% if evidence %}
+<section class="panel events">
+  <div class="title-line"><h3>$ 复测名单 · {{ evidence.batch_id[:12] }}</h3><span>{{ evidence.generated_at }}</span></div>
+  <p class="result" data-state="{{ 'PASS' if evidence.approved else 'OVER_LIMIT' }}">{{ '最终抽验范围对账合格，可签发' if evidence.approved else '待处置' }}{% if evidence.blockers %} · {{ evidence.blockers|join(' / ') }}{% endif %}</p>
+  {% for item in evidence.escalations %}<p class="issue" role="alert">{{ item.triggers|join('、') }} 双端对账超限，{{ item.crew }} 全班接头纳入复测{% if item.added %}：{{ item.added|join('、') }}{% endif %}。</p>{% endfor %}
+  <div class="sheet"><table><thead><tr><th>接头</th><th>班组</th><th>抽验</th><th>单端告警</th><th>对账</th></tr></thead><tbody>
+  {% for row in evidence.rows %}<tr><td>{{ row.joint }}</td><td>{{ row.crew }}</td><td class="result" data-state="{{ row.state }}">{{ states[row.state] }}</td><td class="num">{{ row.alarms }}</td><td class="result" data-state="{{ row.code }}">{{ codes[row.code] }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<section class="panel">
+  <h3>$ 班组配额</h3>
+  <div class="sheet"><table><thead><tr><th>班组</th><th>接头数</th><th>单端告警</th><th>初抽名额</th><th>抽中名单</th></tr></thead><tbody>
+  {% for team in evidence.teams %}<tr><td>{{ team.name }}</td><td class="num">{{ team.joints|length }}</td><td class="num">{{ team.alarms }}</td><td class="num">{{ team.share }}</td><td>{{ team.picked|join('、') }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+<section class="panel archive">
+  <h3>$ 抽验批次</h3>
+  <div class="sheet"><table><thead><tr><th>批次</th><th>时间 UTC</th><th>名额</th><th>复测范围</th><th>结论</th></tr></thead><tbody>
+  {% for entry in entries %}<tr><td><a href="/inspect/sampling?batch={{ entry.batch_id }}&amp;sample={{ mode }}">{{ entry.batch_id[:15] }}</a></td><td>{{ entry.generated_at }}</td><td class="num">{{ entry.allocated }}/{{ entry.quota }}</td><td class="num">{{ entry.scope_count }}</td><td class="result" data-state="{{ 'PASS' if entry.approved else 'OVER_LIMIT' }}">{{ '可签发' if entry.approved else '待处置' }}</td></tr>{% else %}<tr><td colspan="5">还没有抽验批次，先给定名额定名单。</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>

@@ -13,10 +13,7 @@ def sample(kind):
             'settings':json.loads((folder / 'link.json').read_text(encoding='utf-8'))}
 
 
-def request_material():
-    body = request.get_json(silent=True)
-    if not isinstance(body, dict):
-        raise InspectionError('JSON_OBJECT_REQUIRED', status=400)
+def material_from(body):
     if set(body) <= {'sample','settings'} and 'sample' in body:
         data = sample(body['sample'])
         return {**data, 'settings':body.get('settings', data['settings'])}
@@ -26,3 +23,10 @@ def request_material():
     if any(not isinstance(text,str) for text in data.values()):
         raise InspectionError('TRACE_TEXT_REQUIRED', status=400)
     return body
+
+
+def request_material():
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        raise InspectionError('JSON_OBJECT_REQUIRED', status=400)
+    return material_from(body)
